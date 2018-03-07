@@ -17,9 +17,11 @@ struct MCMovieAPIClient {
     
     static func getMovieAPI(search:String, page:Int, _ completion : @escaping (_ results: movieJSON?, _ error : NSError?) -> Void) {
         
-        let urlFormatString = String(utf8String: search.cString(using: .utf8)!)
+        var urlFormatString = search.replacingOccurrences(of: " ", with: "+")
         
-        let url = URL(string: kMovieURL + String(page) + "&api_key=" + kMovieAPIKey + "&query=" + urlFormatString!)
+        urlFormatString = String(utf8String: urlFormatString.cString(using: .utf8)!)!
+        
+        let url = URL(string: kMovieURL + String(page) + "&api_key=" + kMovieAPIKey + "&query=" + urlFormatString)
         
         let session = URLSession.shared
         

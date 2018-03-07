@@ -27,8 +27,23 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         
+        let alert = UIAlertController(title: "Movie Search",
+                                      message: "Look for your Favorite movie",
+                                      preferredStyle: UIAlertControllerStyle.alert)
+        
+        alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil))
+        
+        self.present(alert, animated: true, completion: nil)
+        
         // Register cell classes
         self.movieTableView.register(UINib(nibName: "WCMovieTableViewCell", bundle: nil), forCellReuseIdentifier: reuseIdentifier)
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(false)
+        if let index = self.movieTableView.indexPathForSelectedRow{
+            self.movieTableView.deselectRow(at: index, animated: true)
+        }
     }
     
     override func didReceiveMemoryWarning() {
@@ -70,7 +85,6 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return self.movieResult.count
     }
     
-    
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
      let cell = self.movieTableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as! WCMovieTableViewCell
      
@@ -97,7 +111,7 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
      return cell
      }
     
-    func tableView(_ tableView: UITableView, didDeselectRowAt indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier:"showMovieDetails", sender: indexPath)
     }
     
@@ -111,6 +125,8 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
             viewController.myMovieSelected = self.movieResult[indexPath.row]
         }
     }
+    
+    // MARK: - Scroll
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
@@ -134,8 +150,6 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     self.bottomFlag = false
                 }
             }
-            
         }
     }
-
 }
