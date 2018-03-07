@@ -15,6 +15,8 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
     private let reuseIdentifier = "movieCellIdentifier"
     private let movieClient = MCMovieDataSource.sharedInstance
     private var movieResult : [WCMovie] = [WCMovie]()
+    private var page : Int = Int()
+    private var bottomFlag = false
     
     // MARK: Control
     
@@ -37,10 +39,21 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
     // MARK: - Search Textfield Delegate
     
     func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        movieClient.searchMovies(search: searchBar.text!, page: "1") { (results, error) in
+        
+        self.page = 1
+        
+        movieClient.searchMovies(search: searchBar.text!, page: self.page) { (results, error) in
             if error == nil {
                 self.movieResult = results!
                 self.movieTableView.reloadData()
+            } else {
+                let alert = UIAlertController(title: "Not Found",
+                                              message: "Try another Movie",
+                                              preferredStyle: UIAlertControllerStyle.alert)
+                
+                alert.addAction(UIAlertAction(title: "Ok", style: UIAlertActionStyle.default, handler: nil))
+                
+                self.present(alert, animated: true, completion: nil)
             }
             
             self.movieSearchBar.resignFirstResponder()
@@ -54,18 +67,18 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return movieResult.count
+        return self.movieResult.count
     }
     
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-     let cell = tableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as! WCMovieTableViewCell
+     let cell = self.movieTableView.dequeueReusableCell(withIdentifier: reuseIdentifier, for: indexPath) as! WCMovieTableViewCell
      
-        cell.movieTitleLabel.text = (movieResult[indexPath.row] as WCMovie).movieTitle
+        cell.movieTitleLabel.text = (self.movieResult[indexPath.row] as WCMovie).movieTitle
         cell.movieImageView.image = UIImage(named: "filmImage")
      
         // Create URL from string
-        let url = NSURL(string: "https://image.tmdb.org/t/p/w200" + (movieResult[indexPath.row] as WCMovie).movieImageURL)!
+        let url = NSURL(string: "https://image.tmdb.org/t/p/w200" + (self.movieResult[indexPath.row] as WCMovie).movieImageURL)!
         
         // Download task:
         let task = URLSession.shared.dataTask(with: url as URL) { (responseData, responseUrl, error) -> Void in
@@ -81,7 +94,6 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
         // Run task
         task.resume()
      
-     
      return cell
      }
     
@@ -89,14 +101,40 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
         performSegue(withIdentifier:"showMovieDetails", sender: indexPath)
     }
     
-    // MARK: - Ndata    Data    avigation
+    // MARK: - Navigation
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         if (segue.identifier == "showMovieDetails") {
             let viewController = segue.destination as! WCDetailViewController
             let indexPath = (sender as! NSIndexPath);
             
-            viewController.myMovieSelected = movieResult[indexPath.row]
+            viewController.myMovieSelected = self.movieResult[indexPath.row]
+        }
+    }
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        
+        let  height = scrollView.frame.size.height
+        let contentYoffset = scrollView.contentOffset.y
+        let distanceFromBottom = scrollView.contentSize.height - contentYoffset
+        if distanceFromBottom < height {
+            
+            if self.bottomFlag == false {
+                self.bottomFlag = true
+                self.page += 1
+                
+                movieClient.changePageMovies(search: self.movieSearchBar.text!, page: self.page) { (results, error) in
+                    if error == nil {
+                        self.movieResult = results!
+                        self.movieTableView.reloadData()
+                    } else {
+                        print("No more Pages")
+                    }
+                    
+                    self.bottomFlag = false
+                }
+            }
+            
         }
     }
 

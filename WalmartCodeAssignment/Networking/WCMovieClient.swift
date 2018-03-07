@@ -15,11 +15,11 @@ typealias movieJSON = [String: AnyObject]
 
 struct MCMovieAPIClient {
     
-    static func getMovieAPI(search:String, page:String, _ completion : @escaping (_ results: movieJSON?, _ error : NSError?) -> Void) {
+    static func getMovieAPI(search:String, page:Int, _ completion : @escaping (_ results: movieJSON?, _ error : NSError?) -> Void) {
         
         let urlFormatString = String(utf8String: search.cString(using: .utf8)!)
         
-        let url = URL(string: kMovieURL + page + "&api_key=" + kMovieAPIKey + "&query=" + urlFormatString!)
+        let url = URL(string: kMovieURL + String(page) + "&api_key=" + kMovieAPIKey + "&query=" + urlFormatString!)
         
         let session = URLSession.shared
         
@@ -37,6 +37,7 @@ struct MCMovieAPIClient {
         let dataTask = session.dataTask(with: unwrappedURL) { (data, response, error) in
             
             do {
+                // checking we are getting the right information
                 guard let resultsDictionary = try JSONSerialization.jsonObject(with: data!, options: JSONSerialization.ReadingOptions(rawValue: 0)) as? [String: AnyObject],
                     let _ = resultsDictionary["total_results"] as? Int64 else {
                         
@@ -50,7 +51,7 @@ struct MCMovieAPIClient {
                 
                 completion(resultsDictionary , nil)
             } catch {
-                print("Could not get API data. \(error), \(error.localizedDescription)")
+                print("Could not get data. \(error), \(error.localizedDescription)")
             }
         }
         dataTask.resume()
