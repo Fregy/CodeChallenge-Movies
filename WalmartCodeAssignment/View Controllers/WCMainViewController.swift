@@ -111,6 +111,10 @@ class WCMainViewController: UIViewController, UITableViewDelegate, UITableViewDa
      return cell
      }
     
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return UITableViewAutomaticDimension
+    }
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         performSegue(withIdentifier:"showMovieDetails", sender: indexPath)
     }
